@@ -37,7 +37,7 @@ namespace DiscordBot
             emb.Description = help;
             var embed = emb.Build();
             context.Channel.SendFileAsync("C:/Users/User/Desktop/sen-wu-viking02.jpg", null,false, embed);
-
+            
             Console.WriteLine("Helping the user");
         }
     }
