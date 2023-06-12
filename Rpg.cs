@@ -412,13 +412,4 @@ namespace Rpg
 
     }
 
-    public abstract class Character
-    {
-        protected Stats stats;
-        protected Inventory inventory;
-        protected Equipment equipment;
-        protected SkillBook skills;
-
-
-    }
 }

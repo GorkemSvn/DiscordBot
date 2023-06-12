@@ -30,6 +30,7 @@ namespace DiscordBot
 
     public class GameObject
     {
+        public Island island;
         public GameObject()
         {
             World.Time += ExperienceSecond;
@@ -43,16 +44,34 @@ namespace DiscordBot
         {
 
         }
+
     }
 
     public class Island
     {
-        public List<GameObject> pool { get; private set; }
+        HashSet<GameObject> pool;
 
         public Island()
         {
-            pool = new List<GameObject>();
+            pool = new HashSet<GameObject>();
             //start a cycle that spawns some items at start and at a frequency into pool
+        }
+
+        public void DeliverObject(GameObject obj, Island To)
+        {
+            if (obj!=null&&pool.Contains(obj) && To!=null)
+            {
+                pool.Remove(obj);
+                To.pool.Add(obj);
+                obj.island = To;
+            }
+        }
+
+        public List<GameObject> GetPool()
+        {
+            var p = new List<GameObject>();
+            p.AddRange(pool);
+            return p;
         }
     }
 }
