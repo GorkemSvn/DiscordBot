@@ -14,7 +14,7 @@ namespace DiscordBot
         public static event GameObjectAction Time;
 
         public static Dictionary<ulong, Hero> players;
-        public static Dictionary<ulong, World> worlds;
+        public static Dictionary<ulong, Village> villages;
 
         static Task playth;
         public static int worldTime { get; private set; }
@@ -25,20 +25,20 @@ namespace DiscordBot
             var path= AppDomain.CurrentDomain.BaseDirectory + "islands";
             try
             {
-                worlds = DataManager.ReadFromFile(path) as Dictionary<ulong, World>;
+                villages = DataManager.ReadFromFile(path) as Dictionary<ulong, Village>;
             }
             catch { }
 
-            if (worlds == null)
+            if (villages == null)
             {
                 players = new Dictionary<ulong, Hero>();
-                worlds = new Dictionary<ulong, World>();
+                villages = new Dictionary<ulong, Village>();
                 Console.WriteLine("Game data created.");
             }
             else
             {
                 players = new Dictionary<ulong, Hero>();
-                foreach (var island in worlds.Values)
+                foreach (var island in villages.Values)
                 {
                     var objs = island.GetPool();
                     foreach (var obj in objs)
@@ -56,7 +56,7 @@ namespace DiscordBot
         public static void Save()
         {
             var path = AppDomain.CurrentDomain.BaseDirectory + "islands";
-            DataManager.WriteToFile(worlds, path);
+            DataManager.WriteToFile(villages, path);
             Console.WriteLine("Game data written to "+path);
         }
 
@@ -89,11 +89,11 @@ namespace DiscordBot
     }
 
 
-    public class World
+    public class Village
     {
         HashSet<Object> pool;
         public ulong id { get; private set; }
-        public World(ulong id)
+        public Village(ulong id)
         {
             this.id = id;
             pool = new HashSet<Object>();
@@ -110,10 +110,14 @@ namespace DiscordBot
             p.AddRange(pool);
             return p;
         }
-
+        public void SendMessage(string m)
+        {
+            (DiscordBot.Bot.instance.client.GetChannel(id) as Discord.WebSocket.ISocketMessageChannel).SendMessageAsync(m);
+        }
         public class Object
         {
-            public World island { get; private set; }
+            public string name { get; private set; }
+            public Village village { get; protected set; }
 
             public Object()
             {
@@ -124,15 +128,15 @@ namespace DiscordBot
             {
             }
 
-            public void SetWorld(World To)
+            public void SetVillage(Village To)
             {
-                if (island != null && island.pool.Contains(this))
-                    island.pool.Remove(this);
+                if (village != null && village.pool.Contains(this))
+                    village.pool.Remove(this);
 
                 if(To!=null && !To.pool.Contains(this))
                     To.pool.Add(this);
 
-                island = To;
+                village = To;
             }
 
         }

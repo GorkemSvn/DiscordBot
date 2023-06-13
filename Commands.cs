@@ -36,10 +36,10 @@ namespace DiscordBot
             emb.Title = title;
             emb.Author = new EmbedAuthorBuilder();
             emb.Author.WithName(sMessage.Author.Username) ;
-            emb.WithImageUrl($"attachment://sen-wu-viking02.jpg");
+            //emb.WithImageUrl($"attachment://sen-wu-viking02.jpg");
             emb.Description = help;
             var embed = emb.Build();
-            sMessage.Channel.SendFileAsync("C:/Users/User/Desktop/sen-wu-viking02.jpg", null,false, embed);
+            sMessage.Channel.SendMessageAsync( null,false, embed);
             
             Console.WriteLine("Helping the user");
         }
@@ -69,7 +69,21 @@ namespace DiscordBot
             dmc.SendMessageAsync(null, false, embed);
         }
 
+        [Summary("Shows bjects around the village ")]
+        public void Enviroment(SocketMessage sMessage)
+        {
+            var character = Operations.GetCharacter(sMessage);
 
+            var objs = character.village.GetPool();
+
+            var builder = new EmbedBuilder();
+            builder.Title =sMessage.Channel.Name+ " Village :";
+            foreach (var item in objs)
+            {
+                builder.Description += item.GetType().Name + " " + item.name + "\n";
+            }
+            sMessage.Channel.SendMessageAsync(null, false, builder.Build());
+        }
         static class Operations
         {
             public static Hero GetCharacter(SocketMessage sMessage)
@@ -84,7 +98,7 @@ namespace DiscordBot
                 //create character if its not registered
                 else
                 {
-                    character = new Hero(author.Id);
+                    character = new Hero(author.Id,author.Username);
                     Server.players.Add(author.Id, character);
                 }
 
@@ -93,16 +107,16 @@ namespace DiscordBot
                 var channel = sMessage.Channel;
                 if(channel.GetChannelType()== ChannelType.Text)
                 {
-                    if (Server.worlds.ContainsKey(channel.Id))
+                    if (Server.villages.ContainsKey(channel.Id))
                     {
-                        var world = Server.worlds[channel.Id];
-                        character.SetWorld(world);
+                        var world = Server.villages[channel.Id];
+                        character.SetVillage(world);
                     }
                     else
                     {
-                        var newWorld = new World(channel.Id);
-                        Server.worlds.Add(newWorld.id, newWorld);
-                        character.SetWorld(newWorld);
+                        var newWorld = new Village(channel.Id);
+                        Server.villages.Add(newWorld.id, newWorld);
+                        character.SetVillage(newWorld);
                     }
                 }
 

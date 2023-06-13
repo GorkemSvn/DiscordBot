@@ -13,7 +13,7 @@ namespace DiscordBot
     public class Bot
     {
         public static Bot instance { get; private set; }
-        DiscordSocketClient client;
+        public DiscordSocketClient client;
 
         string token = "NjU1NzE5MTcyNDYxODIxOTUz.GslYx8.rHJF6GWeDj2YP641BgxOoWz9kevpnqvQ4q_SOk";
         public Commands commands { get; private set; }
