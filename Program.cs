@@ -15,6 +15,8 @@ namespace DiscordBot
         static void Main(string[] args)
         {
             var bot = new Bot();
+            Server.Load();
+            Server.SetActive(true);
             while(true)
                 Console.ReadLine();
         }

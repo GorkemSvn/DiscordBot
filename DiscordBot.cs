@@ -12,13 +12,19 @@ namespace DiscordBot
 {
     public class Bot
     {
+        public static Bot instance { get; private set; }
         DiscordSocketClient client;
 
         string token = "NjU1NzE5MTcyNDYxODIxOTUz.GslYx8.rHJF6GWeDj2YP641BgxOoWz9kevpnqvQ4q_SOk";
-        Commands commands;
+        public Commands commands { get; private set; }
+
         public Bot()
         {
-            RunBotAsync();
+            if (instance == null)
+            {
+                instance = this;
+                RunBotAsync();
+            }
         }
         public async Task RunBotAsync()
         {
@@ -41,17 +47,13 @@ namespace DiscordBot
 
         private async Task HandleCommandAsync(SocketMessage messageParam)
         {
-            var message = messageParam as SocketUserMessage;
-            var context = new SocketCommandContext(client, message);
-
-            if (message.Author.IsBot)
+            if (messageParam.Author.IsBot)
                 return;
 
-            int argPos = 0;
-            if (message.HasStringPrefix("!", ref argPos))
+            if (messageParam.Content[0]=='!')
             {
                 List<string> words = new List<string>();
-                words.AddRange(message.Content.Split(' '));
+                words.AddRange(messageParam.Content.Split(' '));
                 string command = words[0];
                 words.RemoveAt(0);
                 command = command.TrimStart('!');
@@ -61,7 +63,7 @@ namespace DiscordBot
                 if (method != null)
                 {
                     var parameters = new List<object>();
-                    parameters.Add(context);
+                    parameters.Add(messageParam);
 
                     if (words.Count > 0)
                         parameters.Add(words);

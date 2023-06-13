@@ -21,8 +21,8 @@ namespace Rpg
         public EnergyPool(float cap)
         {
             coreCapasity = cap;
+            CalculateCapasity();
             energy = capasity;
-            energy = (float)Math.Round(energy, 3);
         }
 
         public void Alter(float change)
@@ -30,7 +30,7 @@ namespace Rpg
             change = Math.Clamp(energy + change, 0, capasity) - energy;
             energy += change;
             coreCapasity += Math.Max(0f, -change) * growRatio;
-            capasity = CalculateCapasity();
+            CalculateCapasity();
         }
 
         public void SetFactors(string key, float modifier, float multiplier)
@@ -43,9 +43,9 @@ namespace Rpg
             modifiers[key] = modifier;
             multipliers[key] = multiplier;
 
-            capasity = CalculateCapasity();
+            CalculateCapasity();
         }
-        private float CalculateCapasity()
+        private void CalculateCapasity()
         {
             float sum = coreCapasity;
 
@@ -55,7 +55,7 @@ namespace Rpg
             foreach (var x in multipliers)
                 sum *= x.Value;
 
-            return (float)Math.Round(sum, 2);
+            capasity= (float)Math.Round(sum, 2);
         }
         public delegate void EnergyPoolAction(float x);
     }
@@ -213,7 +213,6 @@ namespace Rpg
             return virtualItems;
         }
     }
-
     public class Recipe
     {
         public List<Item> requirements;
@@ -297,97 +296,6 @@ namespace Rpg
         }
     }
 
-    public class Equipment
-    {
-        public enum Placement { head, torso, leg, hands, weapon, shield, neck, finger };
-        public Dictionary<Placement, Piece> equipments;
-
-        Stats stats;
-
-        public Equipment(Stats stats)
-        {
-            this.stats = stats;
-            equipments = new Dictionary<Placement, Piece>();
-
-            var enums = (Placement[])Enum.GetValues(typeof(Placement));
-            for (int i = 0; i < enums.Length; i++)
-            {
-                equipments.Add(enums[i], null);
-            }
-        }
-
-        public Item EquipAndGetDiscarded(Piece piece, int targetIndex)
-        {
-            Item itemTobeReturned = equipments[piece.placement];
-
-            equipments[piece.placement] = piece;
-
-            piece.OnEquip(this, stats);
-            return itemTobeReturned;
-        }
-        public float FilterDamage(Damage damage)
-        {
-            float defence = 0;
-            var eqps = equipments.Values;
-            foreach (Piece equipment in eqps)
-            {
-                if (equipment != null)
-                    defence += equipment.DefencePower(damage);
-            }
-
-            float reducedDamage = RelativeDamageReduction(damage.magnitude, defence);
-            return reducedDamage;
-        }
-
-        static float RelativeDamageReduction(float damage, float defence)
-        {
-            //damage is halfed if damage is equal to defence
-
-            if (damage > 0f)
-            {
-                float DefenceFactor = 1f + Math.Max(0, defence) / damage;
-                damage /= (float)Math.Pow(DefenceFactor, 2);
-
-                return Math.Max(0f, damage);
-            }
-            return 0;
-        }
-
-        public class Piece : Item
-        {
-            public List<Defence> defences { get; private set; }
-            public Placement placement { get; private set; }
-
-            public Piece(List<Defence> defs, Placement placement)
-            {
-                defences = defs;
-                this.placement = placement;
-            }
-
-            public virtual void OnEquip(Equipment equip, Stats stats)
-            {
-                //attribute bonuses here
-                //check compatibility
-            }
-
-            public float DefencePower(Damage damage)
-            {
-                foreach (Defence d in defences)
-                {
-                    if (d.type == damage.type)
-                        return d.power;
-                }
-                return 0f;
-            }
-
-            public struct Defence
-            {
-                public Damage.Type type;
-                public float power;
-            }
-        }
-    }
-
     public class SkillBook
     {
         List<Ability> skills;
@@ -412,4 +320,142 @@ namespace Rpg
 
     }
 
+    public class Equipments
+    {
+        public enum Placement { head, torso, leg, hands, weapon, shield, neck, finger };
+        public Dictionary<Placement, Equipment> pieces;
+
+        public float physicalDefence { get; private set; }
+        public float magicalDefence { get; private set; }
+        Character character;
+
+        public Equipments(Character character)
+        {
+            this.character = character;
+            pieces = new Dictionary<Placement, Equipment>();
+        }
+
+        public Item EquipAndGetDiscarded(Equipment piece)
+        {
+            Equipment itemTobeReturned = null;
+            if (pieces.ContainsKey(piece.placement))
+            {
+                itemTobeReturned = pieces[piece.placement];
+                itemTobeReturned?.OnDiscard(character);
+            }
+
+            pieces[piece.placement] = piece;
+            piece.OnEquip(character);
+            CalculateDefences();
+            return itemTobeReturned;
+        }
+        public float FilterDamage(Damage damage)
+        {
+            float defence = 0;
+            var eqps = pieces.Values;
+            foreach (Equipment equipment in eqps)
+            {
+                defence += equipment.DefencePower(damage);
+            }
+            defence += character.stats.agility.level;
+
+            float reducedDamage = RelativeDamageReduction(damage.magnitude, defence);
+            return reducedDamage;
+        }
+
+        static float RelativeDamageReduction(float damage, float defence)
+        {
+            //damage is quarter if damage is equal to defence
+
+            if (damage > 0f)
+            {
+                float DefenceFactor = 1f + Math.Max(0, defence) / damage;
+                damage /= (float)Math.Pow(DefenceFactor, 2);
+
+                return Math.Max(0f, damage);
+            }
+            return 0;
+        }
+
+        void CalculateDefences()
+        {
+            var eqps = pieces.Values;
+            physicalDefence = 0f;
+            magicalDefence = 0f;
+            foreach (Equipment equipment in eqps)
+            {
+                physicalDefence += equipment.DefencePower(new Damage(1f, Damage.Type.physical));
+                magicalDefence += equipment.DefencePower(new Damage(1f, Damage.Type.magical));
+            }
+            physicalDefence += character.stats.agility.level;
+            magicalDefence += character.stats.agility.level;
+        }
+
+        public class Equipment : Item
+        {
+            public List<Defence> defences { get; private set; }
+            public Placement placement { get; private set; }
+
+            public Equipment(List<Defence> defs, Placement placement)
+            {
+                defences = defs;
+                this.placement = placement;
+            }
+
+            public virtual void OnEquip(Character character)
+            {
+                //attribute bonuses here
+                //check compatibility
+            }
+            public virtual void OnDiscard(Character character)
+            {
+                //attribute bonuses here
+                //check compatibility
+            }
+
+            public float DefencePower(Damage damage)
+            {
+                foreach (Defence d in defences)
+                {
+                    if (d.type == damage.type)
+                        return d.power;
+                }
+                return 0f;
+            }
+
+            public struct Defence
+            {
+                public Damage.Type type;
+                public float power;
+            }
+        }
+    }
+
+    public class Weapon : Equipments.Equipment
+    {
+        public float strFactor=1f, agiFactor=1f,wisFactor=1f;
+        public float strBonus, agiBonus,wisBonus;
+        public float balance { get; private set; }//well balanced weapons give agility exp
+
+        public Weapon(float balance):base(new List<Defence>() { },Equipments.Placement.weapon)
+        {
+            this.balance = Math.Clamp(balance, 0f, 1f);
+        }
+        public override void OnEquip(Character character)
+        {
+            character.stats.strenght.SetFactors("weapon", strBonus, strFactor);
+            character.stats.agility.SetFactors("weapon", agiBonus, agiFactor);
+            character.stats.wisdom.SetFactors("weapon", wisBonus, wisFactor);
+            base.OnEquip(character);
+        }
+        public override void OnDiscard(Character character)
+        {
+            character.stats.strenght.SetFactors("weapon", 0, 1f);
+            character.stats.agility.SetFactors("weapon", 0, 1f);
+            character.stats.wisdom.SetFactors("weapon", 0, 1f);
+            base.OnEquip(character);
+        }
+
+
+    }
 }

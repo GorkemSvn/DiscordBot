@@ -35,9 +35,6 @@ public static class DataManager
 
     public static object ReadFromFile(string filePath)
     {
-        if (!Directory.Exists(filePath) || !File.Exists(filePath))
-            return null;
-
         BinaryFormatter formatter = new BinaryFormatter();
         Stream stream = new FileStream(filePath, FileMode.Open);
         object obj = formatter.Deserialize(stream);
