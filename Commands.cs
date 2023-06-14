@@ -12,6 +12,8 @@ namespace DiscordBot
 {
     public class Commands
     {
+        //These are the commands player can cast from group channels
+
         [ Summary("Lists commands and their explanations")]
         public void Help(SocketMessage sMessage)
         {
@@ -60,9 +62,11 @@ namespace DiscordBot
             embedBuilder.Description ="Health :"+ character.stats.health.energy+"/"+ character.stats.health.capasity;
             embedBuilder.Description +="\n Stamina :" + character.stats.stamina.energy + "/" + character.stats.stamina.capasity;
             embedBuilder.Description += "\n Mana :" + character.stats.mana.energy + "/" + character.stats.mana.capasity;
-            embedBuilder.Description += "\n Strenght :" + character.stats.strenght.level;
-            embedBuilder.Description += "\n Agility :" + character.stats.agility.level;
-            embedBuilder.Description += "\n Wisdom :" + character.stats.wisdom.level;
+            embedBuilder.Description += "\n Strenght :" + character.stats.strenght.level+"("+character.stats.strenght.exp+" exp)";
+            embedBuilder.Description += "\n Agility :" + character.stats.agility.level + "(" + character.stats.agility.exp+" exp)";
+            embedBuilder.Description += "\n Wisdom :" + character.stats.wisdom.level + "(" + character.stats.wisdom.exp+" exp)";
+            embedBuilder.Description += "\n Physical Defence :" + character.equipments.physicalDefence;
+            embedBuilder.Description += "\n Magical Defence :" + character.equipments.magicalDefence;
             var embed = embedBuilder.Build();
 
             var dmc = await sMessage.Author.CreateDMChannelAsync();
@@ -84,6 +88,37 @@ namespace DiscordBot
             }
             sMessage.Channel.SendMessageAsync(null, false, builder.Build());
         }
+
+
+        public void Attack(SocketMessage sMessage,List<string> names)
+        {
+            var character = Operations.GetCharacter(sMessage);
+
+            Village village = character.village;
+            var enviroment = village.GetPool();
+            string targetName = "";
+
+            if (names.Count > 1)
+            {
+                for (int i = 0; i < names.Count-1; i++)
+                {
+                    targetName += names[i]+" ";
+                }
+                targetName += names[names.Count - 1];
+            }
+            else
+                targetName = names[0];
+
+            foreach (var item in enviroment)
+            {
+                if(item.name==targetName && item is Character)
+                {
+                    character.Attack(item as Character);
+                    return;
+                }
+            }
+        }
+
         static class Operations
         {
             public static Hero GetCharacter(SocketMessage sMessage)
@@ -98,7 +133,7 @@ namespace DiscordBot
                 //create character if its not registered
                 else
                 {
-                    character = new Hero(author.Id,author.Username);
+                    character = new Hero(author.Id, author.Username);
                     Server.players.Add(author.Id, character);
                 }
 
@@ -124,5 +159,10 @@ namespace DiscordBot
                 return character;
             }
         }
+    }
+
+    public class PrivateCommands
+    {
+
     }
 }

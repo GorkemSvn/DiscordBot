@@ -25,21 +25,22 @@ public static class DataManager
 
 
     public static void WriteToFile(object obj, string filePath)
-    {
+    {/*
         BinaryFormatter formatter = new BinaryFormatter();
         FileStream stream = new FileStream(filePath, FileMode.Create);
         
         formatter.Serialize(stream, obj);
-        stream.Close();
+        stream.Close();*/
+        File.WriteAllBytes(filePath, ToBinary(obj));
     }
 
     public static object ReadFromFile(string filePath)
-    {
+    {/*
         BinaryFormatter formatter = new BinaryFormatter();
         Stream stream = new FileStream(filePath, FileMode.Open);
         object obj = formatter.Deserialize(stream);
-        stream.Close();
-        return obj;
+        stream.Close();*/
+        return FromBinary(File.ReadAllBytes(filePath));
     }
 
 

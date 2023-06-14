@@ -10,8 +10,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DiscordBot
 {
+    
     class Program
     {
+        public static Random random = new Random(DateTime.Now.Millisecond);
         static void Main(string[] args)
         {
             var bot = new Bot();
@@ -26,6 +28,7 @@ namespace DiscordBot
 }
 
 /*
+ * 
  scienario:
 
 village enviroment
@@ -59,5 +62,13 @@ passive:    they breed but may damage forest or grassland in large numbers
 sheep
 rabbit
 
-killer takes item
+
+versioning
+
+- basic mob spawning and combat, basic items
+- boss summoning
+- spellcasting and other abilities
+- crafting,forestry,fishing,farming,hunting and mining
+- buildings,marriage,companionship,weathers
+
  */

@@ -27,7 +27,7 @@ namespace DiscordBot
             {
                 villages = DataManager.ReadFromFile(path) as Dictionary<ulong, Village>;
             }
-            catch { }
+            catch(Exception e) { Console.WriteLine(e.Message); }
 
             if (villages == null)
             {
@@ -47,17 +47,26 @@ namespace DiscordBot
                         {
                             Hero chr = (Hero)obj;
                             players.Add(chr.id, chr);
-                        }    
+                        }
+                        obj.RefreshTimeHook();
                     }
+                    island.RefreshTimeHook();
                 }
                 Console.WriteLine("Game data loaded.");
             }
         }
-        public static void Save()
+        public static Task Save()
         {
             var path = AppDomain.CurrentDomain.BaseDirectory + "islands";
-            DataManager.WriteToFile(villages, path);
+            try
+            {
+                DataManager.WriteToFile(villages, path);
+            }catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
             Console.WriteLine("Game data written to "+path);
+            return Task.CompletedTask;
         }
 
         public static void SetActive(bool play)
@@ -81,7 +90,7 @@ namespace DiscordBot
                 Time?.Invoke();
 
                 if (++worldTime % 10 == 0)
-                    Save();
+                    await Save();
             }
         }
 
@@ -89,58 +98,6 @@ namespace DiscordBot
     }
 
 
-    public class Village
-    {
-        HashSet<Object> pool;
-        public ulong id { get; private set; }
-        public Village(ulong id)
-        {
-            this.id = id;
-            pool = new HashSet<Object>();
-            Server.Time += TimeLoop;
-        }
-
-        void TimeLoop()
-        {
-        }
-
-        public List<Object> GetPool()
-        {
-            var p = new List<Object>();
-            p.AddRange(pool);
-            return p;
-        }
-        public void SendMessage(string m)
-        {
-            (DiscordBot.Bot.instance.client.GetChannel(id) as Discord.WebSocket.ISocketMessageChannel).SendMessageAsync(m);
-        }
-        public class Object
-        {
-            public string name { get; private set; }
-            public Village village { get; protected set; }
-
-            public Object()
-            {
-                Server.Time += ExperienceSecond;
-            }
-
-            protected virtual void ExperienceSecond()
-            {
-            }
-
-            public void SetVillage(Village To)
-            {
-                if (village != null && village.pool.Contains(this))
-                    village.pool.Remove(this);
-
-                if(To!=null && !To.pool.Contains(this))
-                    To.pool.Add(this);
-
-                village = To;
-            }
-
-        }
-    }
 
 
 }

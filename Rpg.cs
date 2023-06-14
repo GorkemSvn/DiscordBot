@@ -56,6 +56,7 @@ namespace Rpg
                 sum *= x.Value;
 
             capasity= (float)Math.Round(sum, 2);
+            energy= (float)Math.Round(energy, 2);
         }
         public delegate void EnergyPoolAction(float x);
     }
@@ -179,6 +180,7 @@ namespace Rpg
         protected abstract void Effect(object target);
     }
 
+    [Serializable]
     public class Inventory
     {
         public int size = 20;
@@ -213,6 +215,8 @@ namespace Rpg
             return virtualItems;
         }
     }
+
+    [Serializable]
     public class Recipe
     {
         public List<Item> requirements;
@@ -274,6 +278,7 @@ namespace Rpg
         }
     }
 
+    [Serializable]
     public class Stats
     {
         public EnergyPool health { get; private set; }
@@ -296,6 +301,7 @@ namespace Rpg
         }
     }
 
+    [Serializable]
     public class SkillBook
     {
         List<Ability> skills;
@@ -320,6 +326,7 @@ namespace Rpg
 
     }
 
+    [Serializable]
     public class Equipments
     {
         public enum Placement { head, torso, leg, hands, weapon, shield, neck, finger };
@@ -333,6 +340,7 @@ namespace Rpg
         {
             this.character = character;
             pieces = new Dictionary<Placement, Equipment>();
+            CalculateDefences();
         }
 
         public Item EquipAndGetDiscarded(Equipment piece)
@@ -431,6 +439,7 @@ namespace Rpg
         }
     }
 
+    [Serializable]
     public class Weapon : Equipments.Equipment
     {
         public float strFactor=1f, agiFactor=1f,wisFactor=1f;
