@@ -29,19 +29,14 @@ namespace Rpg
             stats.stamina.Alter(0.1f);
             stats.mana.Alter(0.1f);
 
-            if (target != null) 
+            if (target != null)
             {
-                if (target.stats.health.energy > 0)
-                    Hit();
-
-                target = null;
+                Hit();
             } 
         }
 
         public void Attack(Character target)
         {
-            if (stats.health.energy == 0)
-                return;
 
             this.target = target;
         }
@@ -63,23 +58,33 @@ namespace Rpg
 
             stats.health.SetFactors("strenght", stats.strenght.level, 1f);
 
-            target.ReceiveDamage(new Damage(baseD, Damage.Type.physical, this));
+            target?.ReceiveDamage(new Damage(baseD, Damage.Type.physical, this));
+
+            if (target!=null &&target.stats.health.energy <= 0f)
+                target = null;
         }
 
 
         public virtual void ReceiveDamage(Damage damage)
         {
+            if (damage.source != null && damage.source is Character)//is able to fight back
+                target = damage.source as Character;
 
             float d = equipments.FilterDamage(damage);
             stats.health.Alter(-d);
-            village?.SendMessage(name + " received " + d + " damage. (Health :"+stats.health.energy+")");
-            if (stats.health.energy == 0)
+            village?.AddToLog(name + " received " +Math.Round( d,2) + " damage. (Health " + stats.health.energy + ")   ");
+            
+            if (stats.health.energy <= 0f)
+            {
                 OnDeath();
+                target = null;
+            }
         }
 
         protected virtual void OnDeath()
         {
-
+            village?.AddToLog(name + " lost.");
+            village?.SendLogs();
         }
 
 

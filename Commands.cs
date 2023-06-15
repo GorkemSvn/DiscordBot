@@ -62,9 +62,9 @@ namespace DiscordBot
             embedBuilder.Description ="Health :"+ character.stats.health.energy+"/"+ character.stats.health.capasity;
             embedBuilder.Description +="\n Stamina :" + character.stats.stamina.energy + "/" + character.stats.stamina.capasity;
             embedBuilder.Description += "\n Mana :" + character.stats.mana.energy + "/" + character.stats.mana.capasity;
-            embedBuilder.Description += "\n Strenght :" + character.stats.strenght.level+"("+character.stats.strenght.exp+" exp)";
-            embedBuilder.Description += "\n Agility :" + character.stats.agility.level + "(" + character.stats.agility.exp+" exp)";
-            embedBuilder.Description += "\n Wisdom :" + character.stats.wisdom.level + "(" + character.stats.wisdom.exp+" exp)";
+            embedBuilder.Description += "\n Strenght :" + character.stats.strenght.level+" ("+character.stats.strenght.exp+" exp)";
+            embedBuilder.Description += "\n Agility :" + character.stats.agility.level + " (" + character.stats.agility.exp+" exp)";
+            embedBuilder.Description += "\n Wisdom :" + character.stats.wisdom.level + " (" + character.stats.wisdom.exp+" exp)";
             embedBuilder.Description += "\n Physical Defence :" + character.equipments.physicalDefence;
             embedBuilder.Description += "\n Magical Defence :" + character.equipments.magicalDefence;
             var embed = embedBuilder.Build();
@@ -114,9 +114,17 @@ namespace DiscordBot
                 if(item.name==targetName && item is Character)
                 {
                     character.Attack(item as Character);
+                    sMessage.Channel.SendMessageAsync("A fight begins!");
                     return;
                 }
             }
+        }
+
+        public void Logs(SocketMessage sMessage)
+        {
+            var character = Operations.GetCharacter(sMessage);
+
+            character?.village.SendLogs();
         }
 
         static class Operations

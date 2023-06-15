@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Discord.WebSocket;
 using Rpg;
+using Discord;
 
 namespace DiscordBot
 {
@@ -70,9 +71,17 @@ namespace DiscordBot
                 log.RemoveAt(0);
         }
 
-        public List<string> ShowLog()
+        public void SendLogs()
         {
-            return log;
+            var eb = new EmbedBuilder();
+            eb.Title = "Village log:";
+
+            foreach (var item in log)
+            {
+                eb.Description += item + "\n";
+            }
+
+            (Bot.instance.client.GetChannel(id) as ISocketMessageChannel)?.SendMessageAsync("",false,eb.Build());
         }
 
 

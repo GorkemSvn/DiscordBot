@@ -148,7 +148,7 @@ namespace Rpg
 
         public Damage(float magnitude, Type type, object source = null)
         {
-            this.magnitude = magnitude;
+            this.magnitude =(float)Math.Round( magnitude,2);
             this.type = type;
             this.source = source;
         }
@@ -443,8 +443,11 @@ namespace Rpg
     public class Weapon : Equipments.Equipment
     {
         public float strFactor=1f, agiFactor=1f,wisFactor=1f;
+
         public float strBonus, agiBonus,wisBonus;
+
         public float balance { get; private set; }//well balanced weapons give agility exp
+
 
         public Weapon(float balance):base(new List<Defence>() { },Equipments.Placement.weapon)
         {

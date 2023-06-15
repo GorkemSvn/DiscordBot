@@ -30,21 +30,17 @@ namespace Rpg
             stats = new Stats(hp, sta, mna, str, agi, wis);
         }
 
-        public override void ReceiveDamage(Damage damage)
-        {
-            if (damage.source != null && damage.source is Character)
-                target = damage.source as Character;
-            base.ReceiveDamage(damage);
-        }
 
         protected override void OnDeath()
         {
-            village.SendMessage(name + " is dead");
-            
+            if (village == null)
+                return;
+
+            base.OnDeath();
             foreach (var item in drops)
             {
-                var capsule=new ItemCapsule(item);
-                capsule.SetVillage(village);
+                target.inventory.Add(item);
+                village.
             }
             Destroy();
         }
