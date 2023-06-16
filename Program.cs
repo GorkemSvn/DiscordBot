@@ -16,6 +16,8 @@ namespace DiscordBot
         public static Random random = new Random(DateTime.Now.Millisecond);
         static void Main(string[] args)
         {
+            Crafting.BuildItems();
+            Crafting.BuildRecipes();
             var bot = new Bot();
             Server.Load();
             Server.SetActive(true);

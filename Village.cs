@@ -20,12 +20,16 @@ namespace DiscordBot
             pool = new HashSet<Object>();
             Server.Time += TimeLoop;
 
-            var wolf = Spawner.Wolf(this);
+            var wolf = Spawner.Coyote(this);
             mobs.Add(wolf);
 
             var forest = new Forest(Program.random.Next(50, 150));
             forest.SetVillage(this);
             pool.Add(forest);
+
+            var mine = new Mine();
+            mine.SetVillage(this);
+            pool.Add(mine);
         }
 
         public void RefreshTimeHook()
@@ -34,22 +38,29 @@ namespace DiscordBot
         }
         void TimeLoop()
         {
-            if (mobs.Count >= 10)
-                return;
 
-            if (Program.random.NextDouble() < 1f / (60f*(mobs.Count+1)))
+            var standardChance =Math.Pow( 1f / (60f*mobs.Count*mobs.Count),1.0);
+
+            if (Program.random.NextDouble() <standardChance)
             {
-                var wolf = Spawner.Wolf(this);
+                var wolf = Spawner.Coyote(this);
                 mobs.Add( wolf);
 
-                SendMessage("A wolf appeared");
+                SendMessage("A Coyote appeared");
             }
-            if (Program.random.NextDouble() < 1f / (60f * (mobs.Count + 3)))
+            if (Program.random.NextDouble() < standardChance/3f)
+            {
+                var bandit = Spawner.Brawler(this);
+                mobs.Add(bandit);
+
+                SendMessage("A brawler appeared");
+            }
+            if (Program.random.NextDouble() < standardChance/5f)
             {
                 var bandit = Spawner.Bandit(this);
                 mobs.Add(bandit);
 
-                SendMessage("A bandit appeared");
+                SendMessage("A vile Bandit has appeared");
             }
         }
 
@@ -94,7 +105,7 @@ namespace DiscordBot
             public Object()
             {
                 Server.Time += ExperienceSecond;
-                name = this.GetType().Name + Program.random.Next(10, 99);
+                name = this.GetType().Name;// + Program.random.Next(10, 99);
             }
 
             protected virtual void ExperienceSecond()
@@ -140,6 +151,7 @@ namespace DiscordBot
         {
             this.maxSize = maxSize;
             treeCount = maxSize;
+            name = "Forest (" + treeCount + " tree)";
         }
 
         protected override void ExperienceSecond()
@@ -149,18 +161,53 @@ namespace DiscordBot
                 treeCount += Math.Max(1, maxSize / 10);
                 treeCount = Math.Clamp(treeCount, 0, maxSize);
                 village.SendMessage("Sprouts finally grown to trees.");
+                name = "Forest (" + treeCount + " tree)";
             }
         }
 
         public Item Cut()
         {
-            var wood = new Item();
-            wood.name = "Wood";
-            wood.quantity = 1;
-            return wood;
+            if (treeCount > 0)
+            {
+                treeCount--;
+                name = "Forest (" + treeCount + " tree)";
+                return Crafting.wood.Duplicate();
+            }
+            else
+                return null;
         }
     }
+    [System.Serializable]
+    public class Mine:Village.Object
+    {
+        public float Depth { get; private set; }
 
+        public Dictionary<float, List<Item>> minables;
+
+        public Mine()
+        {
+            minables = new Dictionary<float, List<Item>>();
+            minables.Add(0f, new List<Item>() { Crafting.stone });
+            name = "Mountain Mine (" + Depth + "m)";
+        }
+
+        public Item Dig()
+        {
+            var dpeths = new List<float>();
+            dpeths.AddRange(minables.Keys);
+            dpeths.Sort();
+            int layer = 0;
+            for (int i = 0; i < dpeths.Count; i++)
+            {
+                if (Depth >= dpeths[i])
+                    layer = i;
+            }
+
+            var items = minables[layer];
+
+            return items[Program.random.Next(items.Count)].Duplicate();
+        }
+    }
     [System.Serializable]
     public class ItemCapsule : Village.Object
     {

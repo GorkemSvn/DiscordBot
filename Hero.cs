@@ -40,7 +40,7 @@ namespace Rpg
             foreach (var item in drops)
             {
                 target.inventory.Add(item);
-                village.
+                village.SendMessage(target.name+" took " + item.name);
             }
             Destroy();
         }

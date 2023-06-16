@@ -47,7 +47,7 @@ namespace DiscordBot
         }
 
         [Summary("Shows player's information")]
-        public async void Profile(SocketMessage sMessage)
+        public void Profile(SocketMessage sMessage)
         {
             var character = Operations.GetCharacter(sMessage);
 
@@ -69,45 +69,34 @@ namespace DiscordBot
             embedBuilder.Description += "\n Magical Defence :" + character.equipments.magicalDefence;
             var embed = embedBuilder.Build();
 
-            var dmc = await sMessage.Author.CreateDMChannelAsync();
-            dmc.SendMessageAsync(null, false, embed);
+            sMessage.Channel.SendMessageAsync(null, false, embed);
         }
 
-        [Summary("Shows bjects around the village ")]
-        public void Enviroment(SocketMessage sMessage)
+        [Summary("Shows event logs ")]
+        public void Logs(SocketMessage sMessage)
         {
             var character = Operations.GetCharacter(sMessage);
 
-            var objs = character.village.GetPool();
-
-            var builder = new EmbedBuilder();
-            builder.Title =sMessage.Channel.Name+ " Village :";
-            foreach (var item in objs)
-            {
-                builder.Description += item.GetType().Name + " " + item.name + "\n";
-            }
-            sMessage.Channel.SendMessageAsync(null, false, builder.Build());
+            character?.village.SendLogs();
+        }
+        [Summary("Set your character's name (limited usage)")]
+        public void SetName(SocketMessage sMessage,List<string> names)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            character.name = Operations.CombineWords(names);
+            sMessage.Channel.SendMessageAsync("Name changed to " + character.name);
         }
 
 
+        #region Interactions
+        [Summary("Attacks target character ")]
         public void Attack(SocketMessage sMessage,List<string> names)
         {
             var character = Operations.GetCharacter(sMessage);
 
             Village village = character.village;
             var enviroment = village.GetPool();
-            string targetName = "";
-
-            if (names.Count > 1)
-            {
-                for (int i = 0; i < names.Count-1; i++)
-                {
-                    targetName += names[i]+" ";
-                }
-                targetName += names[names.Count - 1];
-            }
-            else
-                targetName = names[0];
+            string targetName = Operations.CombineWords(names);
 
             foreach (var item in enviroment)
             {
@@ -119,14 +108,154 @@ namespace DiscordBot
                 }
             }
         }
-
-        public void Logs(SocketMessage sMessage)
+        [Summary("Shows objects around the village ")]
+        public void Enviroment(SocketMessage sMessage)
         {
             var character = Operations.GetCharacter(sMessage);
 
-            character?.village.SendLogs();
+            var objs = character.village.GetPool();
+
+            var builder = new EmbedBuilder();
+            builder.Title = sMessage.Channel.Name + " Village :";
+            foreach (var item in objs)
+            {
+                builder.Description += " " + item.name + "\n";
+            }
+            sMessage.Channel.SendMessageAsync(null, false, builder.Build());
+        }
+        [Summary("Cuts some tree from forest. ")]
+        public void Timber(SocketMessage sMessage)
+        {
+            var character = Operations.GetCharacter(sMessage);
+
+            var pool=character?.village.GetPool();
+
+            foreach (var item in pool)
+            {
+                if(item is Forest)
+                {
+                    var forest = item as Forest;
+                    var wood = forest.Cut();
+                    if (wood != null)
+                    {
+                        character.inventory.Add(wood);
+                        sMessage.Channel.SendMessageAsync("Wood added to your inventory");
+
+                        return;
+                    }
+                }
+            }
+
+                sMessage.Channel.SendMessageAsync("There were no trees left");
+        }
+        [Summary("Try to mine ores at mountan mine. ")]
+        public void Mine(SocketMessage sMessage)
+        {
+            var character = Operations.GetCharacter(sMessage);
+
+            var pool=character?.village.GetPool();
+
+            foreach (var item in pool)
+            {
+                if(item is Mine)
+                {
+                    var mine = item as Mine;
+                    var ore = mine.Dig();
+                    if (ore != null)
+                    {
+                        character.inventory.Add(ore);
+                        sMessage.Channel.SendMessageAsync(ore.name +" added to your inventory");
+
+                        return;
+                    }
+                }
+            }
+
+                sMessage.Channel.SendMessageAsync("There were no mine nearby");
+        }
+        #endregion
+
+        #region Inventory
+        public void Equip(SocketMessage sMessage, List<string> names)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            var items = character.inventory.GetVirtualList();
+            var eqpm = Operations.CombineWords(names);
+
+            foreach (var item in items)
+            {
+                if (item.name == eqpm && item is Equipments.Equipment equipment)
+                {
+                    character.equipments.EquipAndGetDiscarded(equipment);
+
+                    sMessage.Channel.SendMessageAsync(equipment.name +" equiped!");
+                    return;
+                }
+            }
+            sMessage.Channel.SendMessageAsync("Could not find "+eqpm );
         }
 
+        [Summary("See what you got. ")]
+        public void Inventory(SocketMessage sMessage)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            var items = character.inventory.GetVirtualList();
+            var embedBuilder = new EmbedBuilder();
+            embedBuilder.Title = "Inventory";
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    embedBuilder.Description += "\n " + i + "- " + items[i].name + " (" + items[i].quantity + ")";
+                }
+                else
+                {
+                    embedBuilder.Description += "    " + i + "- " + items[i].name + " (" + items[i].quantity + ")";
+                }
+            }
+            sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
+        }
+        [Summary("See what you can craft. ")]
+        public void Craftables(SocketMessage sMessage)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            var craftables = Crafting.CheckCraftables(character.inventory);
+
+            var embedBuilder = new EmbedBuilder();
+            embedBuilder.Title = "Craftables";
+            for (int i = 0; i < craftables.Count; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    embedBuilder.Description += "\n " + i + "- " + craftables[i].craft.name ;
+                }
+                else
+                {
+                    embedBuilder.Description += "    " + i + "- " + craftables[i].craft.name;
+                }
+            }
+            sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
+        }
+        [Summary("Type !Craft Item Name to craft item")]
+        public void Craft(SocketMessage sMessage, List<string> names)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            var targetItem = Operations.CombineWords(names);
+            var craftable = Crafting.GetRecipe(targetItem);
+
+            if (craftable != null)
+            {
+                if (craftable.Craft(character.inventory))
+                    sMessage.Channel.SendMessageAsync(craftable.craft.name + " has been crafted");
+                else
+                    sMessage.Channel.SendMessageAsync("Not enough ingredients for " + craftable.craft.name);
+
+                return;
+            }
+
+            sMessage.Channel.SendMessageAsync("Could not find recipe for " + targetItem+ ", please check your craftables");
+        }
+        #endregion
         static class Operations
         {
             public static Hero GetCharacter(SocketMessage sMessage)
@@ -165,6 +294,19 @@ namespace DiscordBot
 
 
                 return character;
+            }
+            public static string CombineWords(List<string> words)
+            {
+                var line = words[0];
+
+                if (words.Count > 1)
+                {
+                    for (int i = 1; i < words.Count; i++)
+                    {
+                        line += " "+ words[i];
+                    }
+                }
+                return line;
             }
         }
     }

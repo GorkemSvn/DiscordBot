@@ -115,6 +115,7 @@ namespace Rpg
                 expCap = Math.Max(expCap, 1f);
                 baseLevel--;
             }
+            exp =(float) Math.Round(exp, 2);
             CalculateCapasity();
         }
 
@@ -136,8 +137,33 @@ namespace Rpg
     {
         public string name;
         public string info;
-        public int quantity;
+        public int quantity=1;
+        public int maxQuantity=1;
         public int value;
+
+        public List<Item> requirements;
+
+        public Item Duplicate()
+        {
+            var dup = new Item();
+            dup.name = name;
+            dup.info = info;
+            dup.quantity = quantity;
+            dup.value = value;
+            dup.maxQuantity = maxQuantity;
+            return dup;
+        }
+
+        public void Add(Item item)
+        {
+            if (item.name == name)
+            {
+                int emptySpace = maxQuantity - item.quantity;
+                int addition = Math.Min(emptySpace, item.quantity);
+                quantity += addition;
+                item.quantity -= addition;
+            }
+        }
     }
 
     public struct Damage
@@ -186,18 +212,29 @@ namespace Rpg
         public int size = 20;
         HashSet<Item> items = new HashSet<Item>();
 
-        public bool Add(Item item)
+        public bool Add(Item newItem)
         {
-            if (item == null)
+            if (newItem == null)
                 return false;
 
             if (items.Count > size)
                 return false;
 
-            if (items.Contains(item))
+            if (items.Contains(newItem))
                 return false;
 
-            items.Add(item);
+            foreach (var item in items)
+            {
+                if (item.name == newItem.name)
+                {
+                    item.Add(newItem);
+                    if (newItem.quantity < 1)
+                        return true;
+                }
+            }
+            if(newItem.quantity>0)
+                items.Add(newItem);
+
             return true;
         }
 
@@ -228,53 +265,73 @@ namespace Rpg
                 return false;
 
             if (Craftability(inventory))
+            {
                 RemoveRequirements(inventory);
-
-            inventory.Add(craft);
+                inventory.Add(craft);
+                return true;
+            }
             return false;
         }
 
+        //checks names
         public bool Craftability(Inventory inventory)
         {
             List<Item> items = inventory.GetVirtualList();
+            var ingredients = IngredientsDuplicate();
 
-            foreach (Item requirement in requirements)
+            for (int i = 0; i < ingredients.Count; i++)
             {
-                bool found = false;
-
-                //search if you can find it;
-                for (int i = 0; i < items.Count; i++)
+                var ingredient = ingredients[i];
+                foreach (var item in items)//try to diminish ingredient in inventory
                 {
-                    if (items[i].name == requirement.name)
+                    if (item.name == ingredient.name)
                     {
-                        found = true;
-                        items.RemoveAt(i);
-                        break;
+                        var quantity = Math.Min(ingredient.quantity, item.quantity);
+                        ingredient.quantity -= quantity;
+                        if (ingredient.quantity <= 0)
+                            ingredients.RemoveAt(i--);
+
                     }
                 }
-
-                if (!found)
-                    return false;
             }
 
-            return true;
+            return ingredients.Count < 1;
         }
         void RemoveRequirements(Inventory inventory)
         {
             List<Item> items = inventory.GetVirtualList();
+            var ingredients = IngredientsDuplicate();
 
-            foreach (Item requirement in requirements)
+            for (int i = 0; i < ingredients.Count; i++)
             {
-                for (int i = 0; i < items.Count; i++)
+                var ingredient = requirements[i];
+                for (int j = 0; j < items.Count; j++)
                 {
-                    if (items[i].name == requirement.name)
+                    var item = items[j];
+                    if (item.name == ingredient.name)
                     {
-                        inventory.Remove(items[i]);
-                        items.RemoveAt(i);
-                        break;
+                        var quantity = Math.Min(ingredient.quantity, item.quantity);
+
+                        item.quantity -= quantity;
+                        ingredient.quantity -= quantity;
+                        if (item.quantity == 0)
+                            inventory.Remove(item);
+                        if (ingredient.quantity == 0)
+                            break;
                     }
                 }
             }
+        }
+        List<Item> IngredientsDuplicate()
+        {
+            var ingredients = new List<Item>();
+
+            foreach (var item in requirements)
+            {
+                ingredients.Add(item.Duplicate());
+            }
+
+            return ingredients;
         }
     }
 
@@ -399,6 +456,7 @@ namespace Rpg
             magicalDefence += character.stats.agility.level;
         }
 
+        [Serializable]
         public class Equipment : Item
         {
             public List<Defence> defences { get; private set; }
@@ -431,6 +489,7 @@ namespace Rpg
                 return 0f;
             }
 
+            [Serializable]
             public struct Defence
             {
                 public Damage.Type type;
@@ -468,6 +527,17 @@ namespace Rpg
             base.OnEquip(character);
         }
 
+        public void SetStats(float strF,float strB,float agiF,float agiB,float wisF,float wisB)
+        {
+            strFactor = strF;
+            strBonus = strB;
+
+            agiFactor = agiF;
+            agiBonus = agiB;
+
+            wisFactor = wisF;
+            wisBonus = wisB;
+        }
 
     }
 }
