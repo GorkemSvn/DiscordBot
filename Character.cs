@@ -21,6 +21,8 @@ namespace Rpg
             inventory = new Inventory();
             equipments = new Equipments(this);
             skills = new SkillBook();
+
+            stats.health.bonus.SetFactors("strenght", stats.strenght.level, 1f);
         }
 
         protected override void ExperienceSecond()
@@ -56,7 +58,8 @@ namespace Rpg
             stats.agility.ChangeExp(balance);
             stats.strenght.ChangeExp(1f - balance);
 
-            stats.health.SetFactors("strenght", stats.strenght.level, 1f);
+            stats.stamina.bonus.SetFactors("agility", stats.agility.level, 1f);
+            stats.health.bonus.SetFactors("strenght", stats.strenght.level, 1f);
 
             target?.ReceiveDamage(new Damage(baseD, Damage.Type.physical, this));
 

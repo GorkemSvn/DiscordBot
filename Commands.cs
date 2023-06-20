@@ -31,7 +31,7 @@ namespace DiscordBot
                 if (ats.Length > 0 && ats[0] is SummaryAttribute)
                     line += (ats[0] as SummaryAttribute).Text;
 
-                help += line+"\n";
+                help += line+"\n \n";
             }
 
             var emb = new EmbedBuilder();
@@ -79,7 +79,8 @@ namespace DiscordBot
 
             character?.village.SendLogs();
         }
-        [Summary("Set your character's name (limited usage)")]
+
+        [Summary("(!SetName Juan Rick) Set your character's name (limited usage)")]
         public void SetName(SocketMessage sMessage,List<string> names)
         {
             var character = Operations.GetCharacter(sMessage);
@@ -89,7 +90,7 @@ namespace DiscordBot
 
 
         #region Interactions
-        [Summary("Attacks target character ")]
+        [Summary("(!Attack Evil Monster) Attacks target character ")]
         public void Attack(SocketMessage sMessage,List<string> names)
         {
             var character = Operations.GetCharacter(sMessage);
@@ -175,7 +176,8 @@ namespace DiscordBot
         }
         #endregion
 
-        #region Inventory
+        #region Inventory 
+        [Summary("(Equip Black Sword) Equip named item and discard already equiped one")]
         public void Equip(SocketMessage sMessage, List<string> names)
         {
             var character = Operations.GetCharacter(sMessage);
@@ -206,11 +208,11 @@ namespace DiscordBot
             {
                 if (i % 2 == 0)
                 {
-                    embedBuilder.Description += "\n " + i + "- " + items[i].name + " (" + items[i].quantity + ")";
+                    embedBuilder.Description += "\n "  + "- " + items[i].name + " (" + items[i].quantity + ")";
                 }
                 else
                 {
-                    embedBuilder.Description += "    " + i + "- " + items[i].name + " (" + items[i].quantity + ")";
+                    embedBuilder.Description += "    "  + "- " + items[i].name + " (" + items[i].quantity + ")";
                 }
             }
             sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
@@ -236,7 +238,7 @@ namespace DiscordBot
             }
             sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
         }
-        [Summary("Type !Craft Item Name to craft item")]
+        [Summary("(!Craft Black Sword) Name to craft item")]
         public void Craft(SocketMessage sMessage, List<string> names)
         {
             var character = Operations.GetCharacter(sMessage);
@@ -256,6 +258,8 @@ namespace DiscordBot
             sMessage.Channel.SendMessageAsync("Could not find recipe for " + targetItem+ ", please check your craftables");
         }
         #endregion
+
+
         static class Operations
         {
             public static Hero GetCharacter(SocketMessage sMessage)

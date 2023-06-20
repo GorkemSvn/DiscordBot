@@ -34,20 +34,46 @@ namespace DiscordBot
  scienario:
 
 village enviroment
-Forest(x trees) //grows in number over time, can be cut down for wood resource, some wood might be collected without cutting trees, from falling branches
-Mountain(x meters) //mine depth at mountain, ores might be acquired with pickaxe, ore quality might increase with depth, rocks might be collected without tool
+-Forest(x trees) //grows in number over time, can be cut down for wood resource, some wood might be collected without cutting trees, from falling branches
+-Mountain(x meters) //mine depth at mountain, ores might be acquired with pickaxe, ore quality might increase with depth, rocks might be collected without tool
 Sea Shore & River // fishing spot with some richness
 npc villagers //for trading, mating and companionship
 buildings  // some neutral, some made by player for resting,marriage,crafting,defence,farming,cooking etc
 other biomes and maybe weathers, may vary from village to village
 
 crafting
-stone axe,pickaxe,wood shield,wood bow
-quarts staff
+
+stone club,wood shield,wood bow
+opal staff
+
 bronze sword(bandit&craft) bronze axe, bronze pickaxe,bronze knife
-opal staff,crossbow
-iron equipments, Gold staff, rifle
-titanium equipments, diamond staff, m4
+emerald staff,recurve bow
+
+iron equipments, diamond staff, compound bow
+
+titanium equipments, uranium staff, magnetic bow
+
+attributes
+
+stats
+str: increases physical damage by 1 and hp by 1
+agi: increases defence by 1 and stamina by 1 
+wis: increase mana by 1
+
+str: get better equipment and hulk smash
+agi: spam abilities, be untouchable
+wis: cast spells, do the impossible
+
+abilities
+damage bonus abiliteis, damage multiplier abilities, true damage abilities, health percent damage abilities
+poison abilities,
+hurting hit(+5 damage), eye hit(2x agi), weak poison hit(10 damage over time), blood loss(%1 health)
+gap hit(%25 ignore armor) nerve hit(+20 damage)
+
+spells
+damaging spells, necromancy, heal, buff, curse, item conversion & produce, botanic, weather, summoning
+
+skill acquisition: if player reaches the learning stats, skill is automaticly received
 
 mobs:
 wolf
@@ -73,4 +99,6 @@ versioning
 - crafting,forestry,fishing,farming,hunting and mining
 - buildings,marriage,companionship,weathers
 
+defining details
+item tree
  */

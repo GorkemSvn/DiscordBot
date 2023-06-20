@@ -9,20 +9,20 @@ namespace Rpg
     public class EnergyPool
     {
         public float energy { get; private set; }
-        public float capasity { get; private set; }
+        public float capasity { get { return bonus.Calculate(coreCapasity); } }
+
+        public Bonus bonus { get; private set; }
 
         public float growRatio = 0.01f;
 
         private float coreCapasity;
 
-        Dictionary<string, float> modifiers = new Dictionary<string, float>();
-        Dictionary<string, float> multipliers = new Dictionary<string, float>();
 
         public EnergyPool(float cap)
         {
             coreCapasity = cap;
-            CalculateCapasity();
             energy = capasity;
+            bonus = new Bonus();
         }
 
         public void Alter(float change)
@@ -30,10 +30,20 @@ namespace Rpg
             change = Math.Clamp(energy + change, 0, capasity) - energy;
             energy += change;
             coreCapasity += Math.Max(0f, -change) * growRatio;
-            CalculateCapasity();
         }
 
-        public void SetFactors(string key, float modifier, float multiplier)
+        public delegate void EnergyPoolAction(float x);
+    }
+    [Serializable]
+    public class Bonus
+    {
+        public float modifier { get; private set; }
+        public float multiplier { get; private set; }
+
+        Dictionary<string, float> modifiers = new Dictionary<string, float>();
+        Dictionary<string, float> multipliers = new Dictionary<string, float>();
+
+        public void SetFactors(string key, float modifier=1f, float multiplier=1f)
         {
             if (!modifiers.ContainsKey(key))
                 modifiers.Add(key, 0f);
@@ -43,59 +53,44 @@ namespace Rpg
             modifiers[key] = modifier;
             multipliers[key] = multiplier;
 
-            CalculateCapasity();
-        }
-        private void CalculateCapasity()
-        {
-            float sum = coreCapasity;
 
+            modifier = 0f;
             foreach (var x in modifiers)
-                sum += x.Value;
+                modifier += x.Value;
 
+            multiplier = 1f;
             foreach (var x in multipliers)
-                sum *= x.Value;
-
-            capasity= (float)Math.Round(sum, 2);
-            energy= (float)Math.Round(energy, 2);
+                multiplier *= x.Value;
         }
-        public delegate void EnergyPoolAction(float x);
+
+        public float Calculate(float baseValue)
+        {
+            return (float)Math.Round( baseValue * multiplier + modifier,2);
+        }
     }
 
     [Serializable]
     public class Atribute
     {
-        public float level { get; private set; }
+        public float level { get { return bonus.Calculate(baseLevel); } }
         public float exp { get; private set; }
         public float expCap { get; private set; }
+        public Bonus bonus { get; private set; }
 
         public float growRatio = 0.0f;
 
-        private int baseLevel;
+        int baseLevel;
 
-        Dictionary<string, float> modifiers = new Dictionary<string, float>();
-        Dictionary<string, float> multipliers = new Dictionary<string, float>();
 
 
         public Atribute(int startLevel, float expCapofLvl1 = 100f)
         {
             baseLevel = startLevel;
             expCap = expCapofLvl1 * (float)Math.Pow(1f + growRatio, startLevel - 1);
-
+            bonus = new Bonus();
             exp = 0;
-            CalculateCapasity();
         }
 
-        public void SetFactors(string key, float modifier, float multiplier)
-        {
-            if (!modifiers.ContainsKey(key))
-                modifiers.Add(key, 0f);
-            if (!multipliers.ContainsKey(key))
-                multipliers.Add(key, 1f);
-
-            modifiers[key] = modifier;
-            multipliers[key] = multiplier;
-            CalculateCapasity();
-        }
 
         public void ChangeExp(float change)
         {
@@ -116,21 +111,8 @@ namespace Rpg
                 baseLevel--;
             }
             exp =(float) Math.Round(exp, 2);
-            CalculateCapasity();
         }
 
-        private void CalculateCapasity()
-        {
-            float sum = baseLevel;
-
-            foreach (var x in modifiers)
-                sum += x.Value;
-
-            foreach (var x in multipliers)
-                sum *= x.Value;
-
-            level = (float)Math.Round(sum, 2);
-        }
     }
     [Serializable]
     public class Item
@@ -179,31 +161,6 @@ namespace Rpg
             this.source = source;
         }
         public enum Type { physical, magical }
-    }
-    [Serializable]
-    public abstract class Ability
-    {
-        public string name;
-        object source;
-        public Atribute power { get; protected set; }
-
-        public Ability(object user)
-        {
-            this.source = user;
-        }
-
-        public void Perform(object targets)
-        {
-            if (CheckRequirements())
-            {
-                UseResources();
-                Effect(targets);
-            }
-        }
-
-        protected abstract bool CheckRequirements();
-        protected abstract void UseResources();
-        protected abstract void Effect(object target);
     }
 
     [Serializable]
@@ -359,31 +316,6 @@ namespace Rpg
     }
 
     [Serializable]
-    public class SkillBook
-    {
-        List<Ability> skills;
-
-        public SkillBook()
-        {
-            skills = new List<Ability>();
-        }
-
-        public void Add(Ability skill)
-        {
-            if (!skills.Contains(skill) && skill != null)
-                skills.Add(skill);
-        }
-
-        public List<Ability> GiveVirtualList()
-        {
-            List<Ability> vl = new List<Ability>();
-            (vl).AddRange(skills);
-            return vl;
-        }
-
-    }
-
-    [Serializable]
     public class Equipments
     {
         public enum Placement { head, torso, leg, hands, weapon, shield, neck, finger };
@@ -514,16 +446,16 @@ namespace Rpg
         }
         public override void OnEquip(Character character)
         {
-            character.stats.strenght.SetFactors("weapon", strBonus, strFactor);
-            character.stats.agility.SetFactors("weapon", agiBonus, agiFactor);
-            character.stats.wisdom.SetFactors("weapon", wisBonus, wisFactor);
+            character.stats.strenght.bonus.SetFactors("weapon", strBonus, strFactor);
+            character.stats.agility.bonus.SetFactors("weapon", agiBonus, agiFactor);
+            character.stats.wisdom.bonus.SetFactors("weapon", wisBonus, wisFactor);
             base.OnEquip(character);
         }
         public override void OnDiscard(Character character)
         {
-            character.stats.strenght.SetFactors("weapon", 0, 1f);
-            character.stats.agility.SetFactors("weapon", 0, 1f);
-            character.stats.wisdom.SetFactors("weapon", 0, 1f);
+            character.stats.strenght.bonus.SetFactors("weapon", 0, 1f);
+            character.stats.agility.bonus.SetFactors("weapon", 0, 1f);
+            character.stats.wisdom.bonus.SetFactors("weapon", 0, 1f);
             base.OnEquip(character);
         }
 
