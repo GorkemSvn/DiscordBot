@@ -23,6 +23,7 @@ namespace Rpg
             skills = new SkillBook();
 
             stats.health.bonus.SetFactors("strenght", stats.strenght.level, 1f);
+            stats.stamina.bonus.SetFactors("agility", stats.agility.level, 1f);
         }
 
         protected override void ExperienceSecond()

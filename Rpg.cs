@@ -21,8 +21,8 @@ namespace Rpg
         public EnergyPool(float cap)
         {
             coreCapasity = cap;
-            energy = capasity;
             bonus = new Bonus();
+            energy = capasity;
         }
 
         public void Alter(float change)
@@ -30,6 +30,7 @@ namespace Rpg
             change = Math.Clamp(energy + change, 0, capasity) - energy;
             energy += change;
             coreCapasity += Math.Max(0f, -change) * growRatio;
+            energy =(float) Math.Round(energy, 2);
         }
 
         public delegate void EnergyPoolAction(float x);
@@ -37,21 +38,21 @@ namespace Rpg
     [Serializable]
     public class Bonus
     {
-        public float modifier { get; private set; }
-        public float multiplier { get; private set; }
+        public float modifier { get; private set; } = 0f;
+        public float multiplier { get; private set; } = 1f;
 
         Dictionary<string, float> modifiers = new Dictionary<string, float>();
         Dictionary<string, float> multipliers = new Dictionary<string, float>();
 
-        public void SetFactors(string key, float modifier=1f, float multiplier=1f)
+        public void SetFactors(string key, float _modifier=1f, float _multiplier=1f)
         {
             if (!modifiers.ContainsKey(key))
                 modifiers.Add(key, 0f);
             if (!multipliers.ContainsKey(key))
                 multipliers.Add(key, 1f);
 
-            modifiers[key] = modifier;
-            multipliers[key] = multiplier;
+            modifiers[key] = _modifier;
+            multipliers[key] = _multiplier;
 
 
             modifier = 0f;
@@ -72,6 +73,7 @@ namespace Rpg
     [Serializable]
     public class Atribute
     {
+        public AtributeAction OnLevelUp;
         public float level { get { return bonus.Calculate(baseLevel); } }
         public float exp { get; private set; }
         public float expCap { get; private set; }
@@ -101,6 +103,7 @@ namespace Rpg
                 exp -= expCap;
                 expCap += expCap * growRatio;
                 baseLevel++;
+                OnLevelUp?.Invoke();
             }
 
             while (exp < 0)
@@ -113,6 +116,7 @@ namespace Rpg
             exp =(float) Math.Round(exp, 2);
         }
 
+        public delegate void AtributeAction();
     }
     [Serializable]
     public class Item

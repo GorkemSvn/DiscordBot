@@ -32,6 +32,7 @@ namespace Rpg
         protected abstract void Effect(object target);
     }
 
+    [Serializable]
     public class Skill:Ability
     {
         public float staminaCost;
@@ -61,6 +62,7 @@ namespace Rpg
         }
     }
 
+    [Serializable]
     public class Spell : Ability
     {
         public float manaCost;
@@ -92,6 +94,8 @@ namespace Rpg
             character.stats.mana.Alter(-manaCost);
         }
     }
+
+    [Serializable]
     public class DamageSpell : Spell
     {
         public float damage;
@@ -113,13 +117,17 @@ namespace Rpg
 
     public static class AbilityGenerator
     {
+        /*
+        spells
+        damaging spells, necromancy, heal, buff, curse,
+        item conversion & produce, botanic, weather, summoning
+        */
         public static bool TeachFireBall(Character learner)
         {
             var fb = new DamageSpell(learner,10f,10f);
             return learner.skills.TryToLearn(fb);
         }
     }
-
 
     [Serializable]
     public class SkillBook
@@ -153,6 +161,14 @@ namespace Rpg
             (vl).AddRange(skills);
             return vl;
         }
-
+        public Ability Find(string name)
+        {
+            foreach (var item in skills)
+            {
+                if (item.name == name)
+                    return item;
+            }
+            return null;
+        }
     }
 }

@@ -174,6 +174,27 @@ namespace DiscordBot
 
                 sMessage.Channel.SendMessageAsync("There were no mine nearby");
         }
+
+        public void Ability(SocketMessage sMessage, List<string> names)
+        {
+            if (names.Count < 2)//1 ability name, rest is target name
+                return;
+
+            var abilityName = names[0];
+
+            names.RemoveAt(0);
+
+            var targetName = Operations.CombineWords(names);
+            Character crc = Operations.GetCharacter(sMessage);
+            var target = Operations.FindObect(targetName,crc.village);
+            var abilty = crc.skills.Find(abilityName);
+
+            if (target != null && abilty !=null)
+            {
+                sMessage.Channel.SendMessageAsync("Using " + abilty.name + " on " + targetName);
+                abilty.Perform(target);
+            }
+        }
         #endregion
 
         #region Inventory 
@@ -311,6 +332,19 @@ namespace DiscordBot
                     }
                 }
                 return line;
+            }
+            public static object FindObect(string name, Village village)
+            {
+                var enviroment = village.GetPool();
+
+                foreach (var item in enviroment)
+                {
+                    if (item.name == name)
+                    {
+                        return item;
+                    }
+                }
+                return null;
             }
         }
     }
