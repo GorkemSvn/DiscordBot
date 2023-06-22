@@ -124,7 +124,7 @@ namespace DiscordBot
             }
             sMessage.Channel.SendMessageAsync(null, false, builder.Build());
         }
-        [Summary("Cuts some tree from forest. ")]
+        /*[Summary("Cuts some tree from forest. ")]
         public void Timber(SocketMessage sMessage)
         {
             var character = Operations.GetCharacter(sMessage);
@@ -174,7 +174,8 @@ namespace DiscordBot
 
                 sMessage.Channel.SendMessageAsync("There were no mine nearby");
         }
-
+        */
+        [Summary("'!Ability Name' to use ability ")]
         public void Ability(SocketMessage sMessage, List<string> names)
         {
             if (names.Count < 2)//1 ability name, rest is target name
@@ -217,6 +218,37 @@ namespace DiscordBot
             }
             sMessage.Channel.SendMessageAsync("Could not find "+eqpm );
         }
+        [Summary("(Equip Black Sword) Equip named item and discard already equiped one")]
+        public void Use(SocketMessage sMessage, List<string> names)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            var items = character.inventory.GetVirtualList();
+            var name = Operations.CombineWords(names);
+            var item = Operations.FindItem(name, character.inventory);
+            if (item != null)
+            {
+                item.Use(character);
+
+                sMessage.Channel.SendMessageAsync(name +" is used");
+            }
+            else
+                sMessage.Channel.SendMessageAsync("Could not find " + name);
+        }
+        [Summary("!Collect Apple - Take dropped item")]
+        public void Collect(SocketMessage sMessage, List<string> names)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            var eqpm = Operations.CombineWords(names);
+
+            var targt = Operations.FindObect(eqpm, character.village);
+            if (targt != null && targt is ItemCapsule container)
+            {
+                character.inventory.Add(container.GiveItem());
+                sMessage.Channel.SendMessageAsync(eqpm+" added to your inventory");
+            }
+            else
+                sMessage.Channel.SendMessageAsync("Could not find " + eqpm);
+        }
 
         [Summary("See what you got. ")]
         public void Inventory(SocketMessage sMessage)
@@ -234,6 +266,26 @@ namespace DiscordBot
                 else
                 {
                     embedBuilder.Description += "    "  + "- " + items[i].name + " (" + items[i].quantity + ")";
+                }
+            }
+            sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
+        }
+        [Summary("See what you got. ")]
+        public void Abilities(SocketMessage sMessage)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            var items = character.skills.GiveVirtualList();
+            var embedBuilder = new EmbedBuilder();
+            embedBuilder.Title = "Abilities";
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    embedBuilder.Description += "\n "  + "- " + items[i].name + " (" + items[i].power.level + ")";
+                }
+                else
+                {
+                    embedBuilder.Description += "    "  + "- " + items[i].name + " (" + items[i].power.level + ")";
                 }
             }
             sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
@@ -338,6 +390,18 @@ namespace DiscordBot
                 var enviroment = village.GetPool();
 
                 foreach (var item in enviroment)
+                {
+                    if (item.name == name)
+                    {
+                        return item;
+                    }
+                }
+                return null;
+            }
+            public static Item FindItem(string name,Inventory inventory)
+            {
+                var items = inventory.GetVirtualList();
+                foreach (var item in items)
                 {
                     if (item.name == name)
                     {

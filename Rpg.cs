@@ -118,39 +118,6 @@ namespace Rpg
 
         public delegate void AtributeAction();
     }
-    [Serializable]
-    public class Item
-    {
-        public string name;
-        public string info;
-        public int quantity=1;
-        public int maxQuantity=1;
-        public int value;
-
-        public List<Item> requirements;
-
-        public Item Duplicate()
-        {
-            var dup = new Item();
-            dup.name = name;
-            dup.info = info;
-            dup.quantity = quantity;
-            dup.value = value;
-            dup.maxQuantity = maxQuantity;
-            return dup;
-        }
-
-        public void Add(Item item)
-        {
-            if (item.name == name)
-            {
-                int emptySpace = maxQuantity - item.quantity;
-                int addition = Math.Min(emptySpace, item.quantity);
-                quantity += addition;
-                item.quantity -= addition;
-            }
-        }
-    }
 
     public struct Damage
     {
@@ -167,52 +134,6 @@ namespace Rpg
         public enum Type { physical, magical }
     }
 
-    [Serializable]
-    public class Inventory
-    {
-        public int size = 20;
-        HashSet<Item> items = new HashSet<Item>();
-
-        public bool Add(Item newItem)
-        {
-            if (newItem == null)
-                return false;
-
-            if (items.Count > size)
-                return false;
-
-            if (items.Contains(newItem))
-                return false;
-
-            foreach (var item in items)
-            {
-                if (item.name == newItem.name)
-                {
-                    item.Add(newItem);
-                    if (newItem.quantity < 1)
-                        return true;
-                }
-            }
-            if(newItem.quantity>0)
-                items.Add(newItem);
-
-            return true;
-        }
-
-        public void Remove(Item item)
-        {
-            if (items.Contains(item))
-                items.Remove(item);
-        }
-        public List<Item> GetVirtualList()
-        {
-            List<Item> virtualItems = new List<Item>();
-
-            virtualItems.AddRange(items);
-
-            return virtualItems;
-        }
-    }
 
     [Serializable]
     public class Recipe
@@ -395,6 +316,9 @@ namespace Rpg
         [Serializable]
         public class Equipment : Item
         {
+            public float strFactor = 1f, agiFactor = 1f, wisFactor = 1f;
+
+            public float strBonus, agiBonus, wisBonus;
             public List<Defence> defences { get; private set; }
             public Placement placement { get; private set; }
 
@@ -404,14 +328,20 @@ namespace Rpg
                 this.placement = placement;
             }
 
-            public virtual void OnEquip(Character character)
+            public void OnEquip(Character character)
             {
                 //attribute bonuses here
+                character.stats.strenght.bonus.SetFactors(placement.ToString(), strBonus, strFactor);
+                character.stats.agility.bonus.SetFactors(placement.ToString(), agiBonus, agiFactor);
+                character.stats.wisdom.bonus.SetFactors(placement.ToString(), wisBonus, wisFactor);
                 //check compatibility
             }
-            public virtual void OnDiscard(Character character)
+            public void OnDiscard(Character character)
             {
                 //attribute bonuses here
+                character.stats.strenght.bonus.SetFactors(placement.ToString(), 0, 1f);
+                character.stats.agility.bonus.SetFactors(placement.ToString(), 0, 1f);
+                character.stats.wisdom.bonus.SetFactors(placement.ToString(), 0, 1f);
                 //check compatibility
             }
 
@@ -437,9 +367,6 @@ namespace Rpg
     [Serializable]
     public class Weapon : Equipments.Equipment
     {
-        public float strFactor=1f, agiFactor=1f,wisFactor=1f;
-
-        public float strBonus, agiBonus,wisBonus;
 
         public float balance { get; private set; }//well balanced weapons give agility exp
 
@@ -448,20 +375,7 @@ namespace Rpg
         {
             this.balance = Math.Clamp(balance, 0f, 1f);
         }
-        public override void OnEquip(Character character)
-        {
-            character.stats.strenght.bonus.SetFactors("weapon", strBonus, strFactor);
-            character.stats.agility.bonus.SetFactors("weapon", agiBonus, agiFactor);
-            character.stats.wisdom.bonus.SetFactors("weapon", wisBonus, wisFactor);
-            base.OnEquip(character);
-        }
-        public override void OnDiscard(Character character)
-        {
-            character.stats.strenght.bonus.SetFactors("weapon", 0, 1f);
-            character.stats.agility.bonus.SetFactors("weapon", 0, 1f);
-            character.stats.wisdom.bonus.SetFactors("weapon", 0, 1f);
-            base.OnEquip(character);
-        }
+
 
         public void SetStats(float strF,float strB,float agiF,float agiB,float wisF,float wisB)
         {

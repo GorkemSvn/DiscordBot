@@ -22,14 +22,14 @@ namespace DiscordBot
 
             var wolf = Spawner.Coyote(this);
             mobs.Add(wolf);
-
+            /*
             var forest = new Forest(Program.random.Next(50, 150));
             forest.SetVillage(this);
             pool.Add(forest);
 
             var mine = new Mine();
             mine.SetVillage(this);
-            pool.Add(mine);
+            pool.Add(mine);*/
         }
 
         public void RefreshTimeHook()
@@ -48,7 +48,7 @@ namespace DiscordBot
 
                 SendMessage("A Coyote appeared");
             }
-            if (Program.random.NextDouble() < standardChance/3f)
+            if (Program.random.NextDouble() < standardChance/2f)
             {
                 var bandit = Spawner.Brawler(this);
                 mobs.Add(bandit);
@@ -171,7 +171,7 @@ namespace DiscordBot
             {
                 treeCount--;
                 name = "Forest (" + treeCount + " tree)";
-                return Crafting.wood.Duplicate();
+                return ItemGenerator.wood.Duplicate();
             }
             else
                 return null;
@@ -187,7 +187,7 @@ namespace DiscordBot
         public Mine()
         {
             minables = new Dictionary<float, List<Item>>();
-            minables.Add(0f, new List<Item>() { Crafting.stone });
+            minables.Add(0f, new List<Item>() { ItemGenerator.wood });
             name = "Mountain Mine (" + Depth + "m)";
         }
 
@@ -213,7 +213,7 @@ namespace DiscordBot
     {
         public bool empty { get; private set; }
         Item item;
-
+        int seconds = 0;
         public ItemCapsule(Item item)
         {
             this.item = item;
@@ -223,6 +223,12 @@ namespace DiscordBot
                 empty = true;
 
             name = item.name;
+        }
+        protected override void ExperienceSecond()
+        {
+            seconds++;
+            if (seconds >= 60)
+                Destroy();
         }
 
         public Item GiveItem()

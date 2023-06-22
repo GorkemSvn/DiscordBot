@@ -17,8 +17,9 @@ namespace DiscordBot
         }
         public static Mob Brawler(Village village)
         {
-            var bandit = new Mob(11f, 10f, 0f, 3, 1, 0);
+            var bandit = new Mob(6f, 10f, 0f, 2, 1, 0);
             bandit.name = "Brawler";
+            bandit.drops.Add(ItemGenerator.HardHitBook);
             bandit.SetVillage(village);
             return bandit;
         }
@@ -26,8 +27,21 @@ namespace DiscordBot
         {
             var bandit = new Mob(15f, 10f, 0f, 6, 2, 0);
             bandit.name = "Bandit";
+            bandit.drops.Add(ItemGenerator.BluntSword);
+            bandit.drops.Add(ItemGenerator.Bow);
+            bandit.drops.Add(ItemGenerator.Pendant);
             bandit.SetVillage(village);
             return bandit;
+        }
+
+        public static Mob NoviceWitch(Village village)
+        {
+            var witch = new Mob(10f, 10f, 10f, 1, 2, 5);
+            witch.name = "Novice Witch";
+            witch.drops.Add(ItemGenerator.FireBallBook);
+            witch.drops.Add(ItemGenerator.ShockBook);
+            witch.SetVillage(village);
+            return witch;
         }
     }
 }

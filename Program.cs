@@ -16,7 +16,6 @@ namespace DiscordBot
         public static Random random = new Random(DateTime.Now.Millisecond);
         static void Main(string[] args)
         {
-            Crafting.BuildItems();
             Crafting.BuildRecipes();
             var bot = new Bot();
             Server.Load();
@@ -29,8 +28,14 @@ namespace DiscordBot
 
 }
 
-/*
- * 
+/*TO Do: item drops, skill books
+ *
+ * Game Loop
+ * An enemy spawns - A player kills mob - An item drops - Player Takes & Uses item
+ * Progress: 
+ * As player gets stronger, it kills stronger opponents, gets more interesting items & (ability books, magic items, legendary weapons)
+ * Minigames:-fishing
+ *
  scienario:
 
 village enviroment

@@ -24,6 +24,7 @@ namespace Rpg
     [System.Serializable]
     public class Mob : Character
     {
+        public float dropChance = 0.99f;
         public List<Item> drops = new List<Item>();
         public Mob(float hp, float sta, float mna, int str, int agi, int wis)
         {
@@ -37,11 +38,14 @@ namespace Rpg
                 return;
 
             base.OnDeath();
-            foreach (var item in drops)
+            if (Program.random.NextDouble()<dropChance&& drops.Count > 0)
             {
-                target.inventory.Add(item);
-                village.SendMessage(target.name+" took " + item.name);
+                var drop = drops[Program.random.Next(0, drops.Count)];
+                var dropCapsule = new ItemCapsule(drop);
+                dropCapsule.SetVillage(village);
+                village.SendMessage(drop.name+" is dropped");
             }
+
             Destroy();
         }
     }
