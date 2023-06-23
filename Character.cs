@@ -11,16 +11,16 @@ namespace Rpg
         public Stats stats { get; protected set; }
         public Inventory inventory { get; protected set; }
         public Equipments equipments { get; protected set; }
-        public SkillBook skills { get; protected set; }
+        public AbilityCollection skills { get; protected set; }
 
         protected Character target;
 
         public Character()
         {
-            stats = new Stats(10f, 10f, 0f, 2, 1, 1);
+            stats = new Stats(8f, 10f, 0f, 2, 0, 0);
             inventory = new Inventory();
             equipments = new Equipments(this);
-            skills = new SkillBook();
+            skills = new AbilityCollection(this);
         }
 
         protected override void ExperienceSecond()
@@ -35,7 +35,7 @@ namespace Rpg
 
             if (target != null)
             {
-                if (Program.random.NextDouble() > 0.33f || !TryRandomSkill())
+                if(!TryRandomSkill())
                     Hit();
             } 
         }
@@ -71,10 +71,14 @@ namespace Rpg
             if (skillsList.Count > 0)
             {
                 var selectedSkill = skillsList[Program.random.Next(0, skillsList.Count)];
-                if(selectedSkill.Perform(target))
+                if(selectedSkill.CheckRequirements())
                 {
                     village.AddToLog(name + " used " + selectedSkill.name);
-                    stats.wisdom.ChangeExp(1f);
+                    selectedSkill.Perform(target);
+                    if (selectedSkill is Skill)
+                        stats.agility.ChangeExp(1f);
+                    else if (selectedSkill is Spell)
+                        stats.wisdom.ChangeExp(1f);
 
                     return true;
                 }

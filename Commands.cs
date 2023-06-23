@@ -46,6 +46,7 @@ namespace DiscordBot
             Console.WriteLine("Helping the user");
         }
 
+        //Character
         [Summary("Shows player's information")]
         public void Profile(SocketMessage sMessage)
         {
@@ -71,15 +72,6 @@ namespace DiscordBot
 
             sMessage.Channel.SendMessageAsync(null, false, embed);
         }
-
-        [Summary("Shows event logs ")]
-        public void Logs(SocketMessage sMessage)
-        {
-            var character = Operations.GetCharacter(sMessage);
-
-            character?.village.SendLogs();
-        }
-
         [Summary("(!SetName Juan Rick) Set your character's name (limited usage)")]
         public void SetName(SocketMessage sMessage,List<string> names)
         {
@@ -89,7 +81,7 @@ namespace DiscordBot
         }
 
 
-        #region Interactions
+        //Enviroment Interaction
         [Summary("(!Attack Evil Monster) Attacks target character ")]
         public void Attack(SocketMessage sMessage,List<string> names)
         {
@@ -124,81 +116,16 @@ namespace DiscordBot
             }
             sMessage.Channel.SendMessageAsync(null, false, builder.Build());
         }
-        /*[Summary("Cuts some tree from forest. ")]
-        public void Timber(SocketMessage sMessage)
+        [Summary("Shows event logs ")]
+        public void Logs(SocketMessage sMessage)
         {
             var character = Operations.GetCharacter(sMessage);
 
-            var pool=character?.village.GetPool();
-
-            foreach (var item in pool)
-            {
-                if(item is Forest)
-                {
-                    var forest = item as Forest;
-                    var wood = forest.Cut();
-                    if (wood != null)
-                    {
-                        character.inventory.Add(wood);
-                        sMessage.Channel.SendMessageAsync("Wood added to your inventory");
-
-                        return;
-                    }
-                }
-            }
-
-                sMessage.Channel.SendMessageAsync("There were no trees left");
+            character?.village.SendLogs();
         }
-        [Summary("Try to mine ores at mountan mine. ")]
-        public void Mine(SocketMessage sMessage)
-        {
-            var character = Operations.GetCharacter(sMessage);
 
-            var pool=character?.village.GetPool();
 
-            foreach (var item in pool)
-            {
-                if(item is Mine)
-                {
-                    var mine = item as Mine;
-                    var ore = mine.Dig();
-                    if (ore != null)
-                    {
-                        character.inventory.Add(ore);
-                        sMessage.Channel.SendMessageAsync(ore.name +" added to your inventory");
-
-                        return;
-                    }
-                }
-            }
-
-                sMessage.Channel.SendMessageAsync("There were no mine nearby");
-        }
-        */
-        [Summary("'!Ability Name' to use ability ")]
-        public void Ability(SocketMessage sMessage, List<string> names)
-        {
-            if (names.Count < 2)//1 ability name, rest is target name
-                return;
-
-            var abilityName = names[0];
-
-            names.RemoveAt(0);
-
-            var targetName = Operations.CombineWords(names);
-            Character crc = Operations.GetCharacter(sMessage);
-            var target = Operations.FindObect(targetName,crc.village);
-            var abilty = crc.skills.Find(abilityName);
-
-            if (target != null && abilty !=null)
-            {
-                sMessage.Channel.SendMessageAsync("Using " + abilty.name + " on " + targetName);
-                abilty.Perform(target);
-            }
-        }
-        #endregion
-
-        #region Inventory 
+        //INVENTORY
         [Summary("(Equip Black Sword) Equip named item and discard already equiped one")]
         public void Equip(SocketMessage sMessage, List<string> names)
         {
@@ -249,7 +176,6 @@ namespace DiscordBot
             else
                 sMessage.Channel.SendMessageAsync("Could not find " + eqpm);
         }
-
         [Summary("See what you got. ")]
         public void Inventory(SocketMessage sMessage)
         {
@@ -266,26 +192,6 @@ namespace DiscordBot
                 else
                 {
                     embedBuilder.Description += "    "  + "- " + items[i].name + " (" + items[i].quantity + ")";
-                }
-            }
-            sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
-        }
-        [Summary("See what you got. ")]
-        public void Abilities(SocketMessage sMessage)
-        {
-            var character = Operations.GetCharacter(sMessage);
-            var items = character.skills.GiveVirtualList();
-            var embedBuilder = new EmbedBuilder();
-            embedBuilder.Title = "Abilities";
-            for (int i = 0; i < items.Count; i++)
-            {
-                if (i % 2 == 0)
-                {
-                    embedBuilder.Description += "\n "  + "- " + items[i].name + " (" + items[i].power.level + ")";
-                }
-                else
-                {
-                    embedBuilder.Description += "    "  + "- " + items[i].name + " (" + items[i].power.level + ")";
                 }
             }
             sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
@@ -330,8 +236,44 @@ namespace DiscordBot
 
             sMessage.Channel.SendMessageAsync("Could not find recipe for " + targetItem+ ", please check your craftables");
         }
-        #endregion
 
+        //ABİLİTİES
+        [Summary("See what you got. ")]
+        public void Abilities(SocketMessage sMessage)
+        {
+            var character = Operations.GetCharacter(sMessage);
+            var items = character.skills.GiveVirtualList();
+            var embedBuilder = new EmbedBuilder();
+            embedBuilder.Title = "Abilities";
+            for (int i = 0; i < items.Count; i++)
+            {
+                if (i % 2 == 0)
+                {
+                    embedBuilder.Description += "\n " + "- " + items[i].name + " (" + items[i].power.level + " level ("+items[i].power.exp+" exp))";
+                }
+                else
+                {
+                    embedBuilder.Description += "    " + "- " + items[i].name + " (" + items[i].power.level + " level (" + items[i].power.exp + " exp))";
+                }
+            }
+            sMessage.Channel.SendMessageAsync(null, false, embedBuilder.Build());
+        }
+        [Summary("Removes ability ")]
+        public void DiscardAbility(SocketMessage sMessage, List<string> names)
+        {
+            if (names.Count < 2)//1 ability name, rest is target name
+                return;
+
+            var targetName = Operations.CombineWords(names);
+            Character crc = Operations.GetCharacter(sMessage);
+            var abilty = crc.skills.Find(targetName);
+            if (abilty != null)
+            {
+                crc.skills.Discard(abilty);
+                sMessage.Channel.SendMessageAsync(abilty.name + " removed");
+            }
+
+        }
 
         static class Operations
         {

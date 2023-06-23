@@ -37,6 +37,8 @@ namespace DiscordBot
  * Minigames:-fishing
  *
  scienario:
+-player try to set up their character with first spawning easier mobs. They'll collect pendant or sword or bow.
+-than player waits for stronger opponents to show up. 
 
 village enviroment
 -Forest(x trees) //grows in number over time, can be cut down for wood resource, some wood might be collected without cutting trees, from falling branches

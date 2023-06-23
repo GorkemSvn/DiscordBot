@@ -107,6 +107,16 @@ namespace Rpg
                 return w;
             }
         }
+        public static Item meat
+        {
+            get
+            {
+                var w = new Item();
+                w.name = "Meat";
+                w.maxQuantity = 10;
+                return w;
+            }
+        }
         public static Item Bow
         {
             get

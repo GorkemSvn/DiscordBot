@@ -5,13 +5,14 @@ using System.Text;
 namespace Rpg
 {
     [Serializable]
-    public class SkillBook
+    public class AbilityCollection
     {
         HashSet<Ability> skills;
-
-        public SkillBook()
+        Character user;
+        public AbilityCollection(Character character)
         {
             skills = new HashSet<Ability>();
+            user = character;
         }
 
         public bool TryToLearn(Ability skill)
@@ -23,6 +24,7 @@ namespace Rpg
             }
             if (!skills.Contains(skill) && skill != null)
             {
+                skill.source = user;
                 skills.Add(skill);
                 return true;
             }
@@ -44,6 +46,18 @@ namespace Rpg
                     return item;
             }
             return null;
+        }
+
+        public void Discard(Ability skill)
+        {
+            if (skills.Contains(skill))
+                skills.Remove(skill);
+        }
+        public void Discard(string skillName)
+        {
+            var skill = Find(skillName);
+            if (skill != null)
+                Discard(skill);
         }
     }
 
@@ -72,7 +86,7 @@ namespace Rpg
             return false;
         }
 
-        protected abstract bool CheckRequirements();
+        public abstract bool CheckRequirements();
         protected abstract void UseResources();
         protected abstract void Effect(object target);
     }
@@ -95,7 +109,7 @@ namespace Rpg
         }
         public static Ability HardHit { get
             {
-                var fb = new Skill( 10f, 2f,2f);
+                var fb = new Skill( 10f, 1f,1.25f);
                 fb.name = "Hard Hit";
                 return fb;
             } 
@@ -119,11 +133,11 @@ namespace Rpg
             factor = damageFactor;
             staminaCost = cost;
         }
-        protected override bool CheckRequirements()
+        public override bool CheckRequirements()
         {
             if(source is Character character)
             {
-                if (character.stats.stamina.energy > staminaCost)
+                if (character.stats.stamina.energy >= staminaCost)
                     return true;
             }
             return false;
@@ -137,8 +151,8 @@ namespace Rpg
         {
             if(target is Character trg)
             {
-                var str = (source as Character).stats.strenght.level;
-                trg.ReceiveDamage(new Damage((str+power.level) * bonus * factor, Damage.Type.physical, source));
+                var str = (source as Character).stats.strenght.level + bonus + power.level;
+                trg.ReceiveDamage(new Damage(str * factor, Damage.Type.physical, source));
             }
         }
     }
@@ -151,7 +165,7 @@ namespace Rpg
         public float manaCost;
 
 
-        protected override bool CheckRequirements()
+        public override bool CheckRequirements()
         {
             if (source is Character character)
             {

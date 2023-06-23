@@ -26,11 +26,21 @@ namespace Rpg
     {
         public float dropChance = 0.99f;
         public List<Item> drops = new List<Item>();
+        int lifeTime = 0;
         public Mob(float hp, float sta, float mna, int str, int agi, int wis)
         {
             stats = new Stats(hp, sta, mna, str, agi, wis);
         }
 
+        protected override void ExperienceSecond()
+        {
+            base.ExperienceSecond();
+            if (++lifeTime > 3600)
+            {
+                village.SendMessage(name + " left");
+                Destroy();
+            }
+        }
 
         protected override void OnDeath()
         {
