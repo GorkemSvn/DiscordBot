@@ -28,7 +28,7 @@ namespace DiscordBot
 
 }
 
-/*TO Do: item drops, skill books
+/*TO Do: buff items(eat berry from boar, 1 hp buff for 1 minute)
  *
  * Game Loop
  * An enemy spawns - A player kills mob - An item drops - Player Takes & Uses item

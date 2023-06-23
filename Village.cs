@@ -20,8 +20,6 @@ namespace DiscordBot
             pool = new HashSet<Object>();
             Server.Time += TimeLoop;
 
-            var wolf = Spawner.Coyote(this);
-            mobs.Add(wolf);
             /*
             var forest = new Forest(Program.random.Next(50, 150));
             forest.SetVillage(this);
@@ -43,24 +41,31 @@ namespace DiscordBot
 
             if (Program.random.NextDouble() <standardChance)
             {
-                var wolf = Spawner.Coyote(this);
+                var wolf = Spawner.Boar(this);
                 mobs.Add( wolf);
 
-                SendMessage("A Coyote appeared");
+                SendMessage("A "+wolf.name+" appeared");
             }
             if (Program.random.NextDouble() < standardChance/2f)
             {
                 var bandit = Spawner.Brawler(this);
                 mobs.Add(bandit);
 
-                SendMessage("A brawler appeared");
+                SendMessage( bandit.name + " appeared");
             }
-            if (Program.random.NextDouble() < standardChance/5f)
+            if (Program.random.NextDouble() < standardChance/10f)
             {
                 var bandit = Spawner.Bandit(this);
                 mobs.Add(bandit);
 
-                SendMessage("A vile Bandit has appeared");
+                SendMessage( bandit.name + " appeared");
+            }
+            if (Program.random.NextDouble() < standardChance/20f)
+            {
+                var witch = Spawner.NoviceWitch(this);
+                mobs.Add(witch);
+
+                SendMessage( witch.name + " appeared.");
             }
         }
 

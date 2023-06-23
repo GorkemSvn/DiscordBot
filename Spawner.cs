@@ -8,10 +8,11 @@ namespace DiscordBot
     class Spawner
     {
 
-        public static Mob Coyote(Village village)
+        public static Mob Boar(Village village)
         {
-            var boar = new Mob(3f, 10f, 0f, 2, 0, 0);
-            boar.name = "Coyote";
+            var boar = new Mob(6f, 2f, 0f, 2, 0, 0);
+            boar.name = "Boar";
+            boar.drops.Add(ItemGenerator.meat);
             boar.SetVillage(village);
             return boar;
         }
