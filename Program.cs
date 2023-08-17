@@ -17,7 +17,7 @@ namespace DiscordBot
         static void Main(string[] args)
         {
             Crafting.BuildRecipes();
-            var bot = new Bot();
+            var bot = new Bot("C:/Visual Studio Projects/DiscordBot/Token");
             Server.Load();
             Server.SetActive(true);
             while(true)
@@ -72,7 +72,7 @@ agi: spam abilities, be untouchable
 wis: cast spells, do the impossible
 
 abilities
-damage bonus abiliteis, damage multiplier abilities, true damage abilities, health percent damage abilities
+damage bonus abiliteis, damage multiplier abilities, true damage abilities, health percent damage abilities, turn stamina to damage ability!
 poison abilities,
 hurting hit(+5 damage), eye hit(2x agi), weak poison hit(10 damage over time), blood loss(%1 health)
 gap hit(%25 ignore armor) nerve hit(+20 damage)

@@ -15,13 +15,14 @@ namespace DiscordBot
         public static Bot instance { get; private set; }
         public DiscordSocketClient client;
 
-        string token = "NjU1NzE5MTcyNDYxODIxOTUz.GslYx8.rHJF6GWeDj2YP641BgxOoWz9kevpnqvQ4q_SOk";
+        string token ;
         public Commands commands { get; private set; }
 
-        public Bot()
+        public Bot(string tokenPath)
         {
             if (instance == null)
             {
+                token= File.ReadAllLines(tokenPath)[0];
                 instance = this;
                 RunBotAsync();
             }
